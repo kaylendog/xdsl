@@ -18,6 +18,7 @@ func.func private @vector_test(%base : memref<4x4xindex>, %vec : vector<1xi1>, %
   vector.transfer_write %read, %base[%i, %i] {in_bounds = [true], permutation_map = affine_map<(d0, d1) -> (d0)>} : vector<4xindex>, memref<4x4xindex>
   %sum = vector.reduction <add>, %fvec : vector<2xf32> into f32
   %sum_1 = vector.reduction <add>, %fvec, %c0 : vector<2xf32> into f32
+  %cast = vector.bitcast %fvec : vector<2xf32> to vector<2xi32>
   func.return
 }
 
@@ -40,6 +41,7 @@ func.func private @vector_test(%base : memref<4x4xindex>, %vec : vector<1xi1>, %
 // CHECK-NEXT:     vector.transfer_write %read, %base[%i, %i] {in_bounds = [true], permutation_map = affine_map<(d0, d1) -> (d0)>} : vector<4xindex>, memref<4x4xindex>
 // CHECK-NEXT:     %sum = vector.reduction <add>, %fvec : vector<2xf32> into f32
 // CHECK-NEXT:     %sum_1 = vector.reduction <add>, %fvec, %c0 : vector<2xf32> into f32
+// CHECK-NEXT:     %cast = vector.bitcast %fvec : vector<2xf32> to vector<2xi32>
 // CHECK-NEXT:     func.return
 // CHECK-NEXT:   }
 
