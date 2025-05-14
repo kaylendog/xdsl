@@ -81,6 +81,7 @@ memref.store %fv, %farr[%idx] {"nontemporal" = false} : memref<10xf64>
 // CHECK-NEXT: %scaled_pointer_offset_7 = arith.muli %idx, %bytes_per_element_7 : index
 // CHECK-NEXT: %dynsubview = ptr_xdsl.to_ptr %dyn : memref<?xi32> -> !ptr_xdsl.ptr
 // CHECK-NEXT: %offset_pointer_7 = ptr_xdsl.ptradd %dynsubview, %scaled_pointer_offset_7 : (!ptr_xdsl.ptr, index) -> !ptr_xdsl.ptr
+// CHECK-NEXT: %dynsubview_1 = builtin.unrealized_conversion_cast %offset_pointer_7 : !ptr_xdsl.ptr to memref<?xi32>
 
 %vcast = "test.op"() : () -> (memref<10xi32>)
 %cast = "memref.cast"(%vcast) : (memref<10xi32>) -> memref<?xi32>
