@@ -1,6 +1,6 @@
 // RUN: XDSL_ROUNDTRIP
 
-func.func private @vector_test(%base : memref<4x4xindex>, %vec : vector<1xi1>, %i : index, %fvec : vector<2xf32>) {
+func.func private @vector_test(%base : memref<4x4xindex>, %vec : vector<1xi1>, %i : index, %fvec : vector<2xf32>, %c0 : f32) {
   %load = vector.load %base[%i, %i] : memref<4x4xindex>, vector<2xindex>
   vector.store %load, %base[%i, %i] : memref<4x4xindex>, vector<2xindex>
   %load_nontemporal = vector.load %base[%i, %i] {"nontemporal" = false} : memref<4x4xindex>, vector<2xindex>
@@ -17,11 +17,13 @@ func.func private @vector_test(%base : memref<4x4xindex>, %vec : vector<1xi1>, %
   %read_1 = vector.transfer_read %base[%i, %i], %i {in_bounds = [true]} : memref<4x4xindex>, vector<4xindex>
   vector.transfer_write %read, %base[%i, %i] {in_bounds = [true], permutation_map = affine_map<(d0, d1) -> (d0)>} : vector<4xindex>, memref<4x4xindex>
   %cast = vector.bitcast %fvec : vector<2xf32> to vector<2xi32>
+  %sum = vector.reduction <add>, %fvec : vector<2xf32> into f32
+  %sum_1 = vector.reduction <add>, %fvec, %c0 : vector<2xf32> into f32
   func.return
 }
 
 
-// CHECK:       func.func private @vector_test(%base : memref<4x4xindex>, %vec : vector<1xi1>, %i : index, %fvec : vector<2xf32>) {
+// CHECK:       func.func private @vector_test(%base : memref<4x4xindex>, %vec : vector<1xi1>, %i : index, %fvec : vector<2xf32>, %c0 : f32) {
 // CHECK-NEXT:     %load = vector.load %base[%i, %i] : memref<4x4xindex>, vector<2xindex>
 // CHECK-NEXT:     vector.store %load, %base[%i, %i] : memref<4x4xindex>, vector<2xindex>
 // CHECK-NEXT:     %load_nontemporal = vector.load %base[%i, %i] : memref<4x4xindex>, vector<2xindex>
@@ -38,6 +40,8 @@ func.func private @vector_test(%base : memref<4x4xindex>, %vec : vector<1xi1>, %
 // CHECK-NEXT:     %read_1 = vector.transfer_read %base[%i, %i], %i {in_bounds = [true]} : memref<4x4xindex>, vector<4xindex>
 // CHECK-NEXT:     vector.transfer_write %read, %base[%i, %i] {in_bounds = [true], permutation_map = affine_map<(d0, d1) -> (d0)>} : vector<4xindex>, memref<4x4xindex>
 // CHECK-NEXT:     %cast = vector.bitcast %fvec : vector<2xf32> to vector<2xi32>
+// CHECK-NEXT:     %sum = vector.reduction <add>, %fvec : vector<2xf32> into f32
+// CHECK-NEXT:     %sum_1 = vector.reduction <add>, %fvec, %c0 : vector<2xf32> into f32
 // CHECK-NEXT:     func.return
 // CHECK-NEXT:   }
 
