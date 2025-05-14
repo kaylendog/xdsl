@@ -172,6 +172,17 @@ class ConvertSubviewOp(RewritePattern):
         )
 
 
+class ConvertCastOp(RewritePattern):
+    """
+    Converts `memref.cast` to `ptr.cast`.
+    """
+
+    @op_type_rewrite_pattern
+    def match_and_rewrite(self, op: memref.CastOp, rewriter: PatternRewriter, /):
+        assert isa(op.source.type, memref.MemRefType)
+        rewriter.replace_matched_op((), (op.source,))
+
+
 @dataclass
 class LowerMemRefFuncOpPattern(RewritePattern):
     """
@@ -283,6 +294,22 @@ class LowerMemRefFuncCallPattern(RewritePattern):
         rewriter.replace_matched_op(new_ops, new_results)
 
 
+@dataclass
+class ConvertReinterpretCastOp(RewritePattern):
+    @op_type_rewrite_pattern
+    def match_and_rewrite(
+        self, op: memref.ReinterpretCastOp, rewriter: PatternRewriter, /
+    ):
+        rewriter.replace_matched_op(
+            (
+                ptr_cast := ptr.ToPtrOp(op.source),
+                builtin.UnrealizedConversionCastOp.get(
+                    [ptr_cast.res], [op.result.type]
+                ),
+            )
+        )
+
+
 @dataclass(frozen=True)
 class ConvertMemRefToPtr(ModulePass):
     name = "convert-memref-to-ptr"
@@ -296,6 +323,8 @@ class ConvertMemRefToPtr(ModulePass):
                     ConvertStoreOp(),
                     ConvertLoadOp(),
                     ConvertSubviewOp(),
+                    ConvertCastOp(),
+                    ConvertReinterpretCastOp(),
                 ]
             )
         ).rewrite_module(op)
