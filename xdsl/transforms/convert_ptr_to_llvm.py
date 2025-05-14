@@ -54,7 +54,7 @@ class ConvertPtrAddOp(RewritePattern):
                 ),
                 cast_offset_op := arith.IndexCastOp(
                     op.offset,
-                    builtin.i32,
+                    builtin.i64,
                 ),
                 llvm.GEPOp(
                     cast_addr_op.results[0],
